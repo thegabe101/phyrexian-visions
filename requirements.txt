@@ -13,3 +13,4 @@ Flask-Cors==3.0.10
 alembic==1.5.4
 
 pytest
+pymongo

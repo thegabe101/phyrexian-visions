@@ -1,4 +1,7 @@
 version: "3.2"
+networks:
+  mongo_network:
+    driver: bridge
 
 services:
   postgres:
@@ -12,7 +15,24 @@ services:
       POSTGRES_USER: bard
       POSTGRES_PASSWORD: bard
       POSTGRES_DATABASE: bard
-
+  mongo:
+    container_name: mongo
+    image: mongo:latest
+    hostname: mongo
+    networks:
+      - mongo_network
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=bard
+      - MONGO_INITDB_ROOT_PASSWORD=bard
+    ports:
+      - "27017"
+    command: mongod --quiet --logpath /dev/null
+    healthcheck:
+      test: mongosh --username bard --password bard --eval "printjson(db.serverStatus())"
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
   api:
     build:
       context: .

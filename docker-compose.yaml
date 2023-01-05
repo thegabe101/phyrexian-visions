@@ -45,7 +45,7 @@ services:
     depends_on:
       - postgres
     volumes:
-      - "./bard:/bard/bard"
+      - "./bard:/bard"
     environment:
       DAKOBED_DEBUG: "true"
       DAKOBED_PROFILE: "false"

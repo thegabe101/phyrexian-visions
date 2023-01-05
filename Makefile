@@ -19,6 +19,11 @@ web: services
 # web: services
 # 	$(COMPOSE) up api ui
 
+
+migrate:
+	$(APPDOCKER) bard db upgrade
+	$(APPDOCKER) bard db  migrate
+
 services:
 	$(COMPOSE) up -d --remove-orphans \
 		$(SERVICES_CONTAINERS)

@@ -20,7 +20,7 @@ RUN pip3 install --no-cache-dir -q -U pip setuptools six
 COPY . /bard
 WORKDIR /bard
 ENV PYTHONPATH /bard
-RUN pip install -q -e /bard
+# RUN pip install -q -e /bard
 
 
 COPY requirements.txt ./

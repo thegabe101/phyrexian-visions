@@ -1,61 +1,101 @@
 version: "3.2"
 networks:
-  mongo_network:
-    driver: bridge
-
+    mongo_network:
+        driver: bridge
+    credentials_network:
+        driver: bridge
+        ipam:
+            config:
+                - subnet: "169.254.170.0/24"
+                  gateway: 169.254.170.1
 services:
-  postgres:
-    image: postgres:10.0
-    hostname: postgres
-    ports:
-      - "127.0.0.1:15432:5432"
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
-    environment:
-      POSTGRES_USER: bard
-      POSTGRES_PASSWORD: bard
-      POSTGRES_DATABASE: bard
-  mongo:
-    container_name: mongo
-    image: mongo:latest
-    hostname: mongo
-    networks:
-      - mongo_network
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=bard
-      - MONGO_INITDB_ROOT_PASSWORD=bard
-    ports:
-      - "27017"
-    command: mongod --quiet --logpath /dev/null
-    healthcheck:
-      test: mongosh --username bard --password bard --eval "printjson(db.serverStatus())"
-      interval: 10s
-      timeout: 10s
-      retries: 5
-      start_period: 20s
-  api:
-    build:
-      context: .
-    #image: barddata/bard:${BARD_TAG:-latest}
-    #command: bard run -h 0.0.0.0 -p 5000 --with-threads --reload --debugger
-    command: gunicorn --workers 2 --timeout 90 --bind 0.0.0:5000 --access-logfile - wsgi:application --reload
-    ports:
-      - "127.0.0.1:5000:5000"
-    restart: on-failure
-    depends_on:
-      - postgres
-    volumes:
-      - "./bard:/bard"
-    environment:
-      DAKOBED_DEBUG: "true"
-      DAKOBED_PROFILE: "false"
-      DAKOBED_SECRET_KEY: "development"
-      BARD_DATABASE_URI: "postgresql://bard:bard@postgres:5432/bard"
+    # postgres:
+    #   image: postgres:10.0
+    #   hostname: postgres
+    #   ports:
+    #     - "127.0.0.1:15432:5432"
+    #   volumes:
+    #     - postgres-data:/var/lib/postgresql/data
+    #   environment:
+    #     POSTGRES_USER: bard
+    #     POSTGRES_PASSWORD: bard
+    #     POSTGRES_DATABASE: bard
+    mongo:
+        container_name: mongo
+        image: mongo:latest
+        hostname: mongo
+        networks:
+            - mongo_network
+        environment:
+            - MONGO_INITDB_ROOT_USERNAME=bard
+            - MONGO_INITDB_ROOT_PASSWORD=bard
+        ports:
+            - "27017"
+        command: mongod --quiet --logpath /dev/null
+        healthcheck:
+            test: mongosh --username bard --password bard --eval "printjson(db.serverStatus())"
+            interval: 10s
+            timeout: 10s
+            retries: 5
+            start_period: 20s
 
+    ecs-local-endpoints:
+        # The Amazon ECS Local Container Endpoints Docker Image
+        image: amazon/amazon-ecs-local-container-endpoints
+        volumes:
+            # Mount /var/run so we can access docker.sock and talk to Docker
+            - /var/run:/var/run
+              # Mount the shared configuration directory, used by the AWS CLI and AWS SDKs
+              # On Windows, this directory can be found at "%UserProfile%\.aws"
+            - $HOME/.aws/:/home/.aws/
+        environment:
+            # define the home folder; credentials will be read from $HOME/.aws
+            HOME:
+                "/home"
+                # You can change which AWS CLI Profile is used
+            AWS_PROFILE: "default"
+        networks:
+            credentials_network:
+                # This special IP address is recognized by the AWS SDKs and AWS CLI
+                ipv4_address: "169.254.170.2"
+
+    app:
+        build:
+            context: .
+        #image: barddata/bard:${BARD_TAG:-latest}
+        hostname: bard
+        command: /bin/bash
+
+        tmpfs: /tmp
+        volumes:
+            - "./bard:/bard"
+            - "~:/host"
+        cap_add:
+            - SYS_PTRACE
+
+        environment:
+            AWS_DEFAULT_REGION: "us-west-2"
+            AWS_CONTAINER_CREDENTIALS_RELATIVE_URI: "/creds"
+
+    api:
+        build:
+            context: .
+        #image: barddata/bard:${BARD_TAG:-latest}
+        #command: bard run -h 0.0.0.0 -p 5000 --with-threads --reload --debugger
+        command: gunicorn --workers 2 --timeout 90 --bind 0.0.0:5000 --access-logfile - wsgi:application --reload
+        ports:
+            - "127.0.0.1:5000:5000"
+        restart: on-failure
+        networks:
+            credentials_network:
+                ipv4_address: "169.254.170.3"
+        # depends_on:
+        #   - postgres
+        volumes:
+            - "./bard:/bard"
+        environment:
+            AWS_DEFAULT_REGION: "us-west-2"
+            AWS_CONTAINER_CREDENTIALS_RELATIVE_URI: "/creds"
 
 volumes:
-  archive-data: {}
-  postgres-data: {}
-  redis-data: {}
-  elasticsearch-data: {}
-
+    postgres-data: {}

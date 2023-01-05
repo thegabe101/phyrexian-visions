@@ -13,4 +13,3 @@ setup(
         "console_scripts": ["bard = bard.manage:cli"],
     }
 )
-

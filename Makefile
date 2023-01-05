@@ -11,7 +11,7 @@ build:
 	$(COMPOSE) build
 
 shell: services
-	$(APPDOCKER) /bin/bash
+	docker-compose run --rm app /bin/bash
 
 web: services
 	$(COMPOSE) up api

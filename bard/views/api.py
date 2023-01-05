@@ -7,8 +7,6 @@ log = logging.getLogger(__name__)
 
 blueprint = Blueprint("collections_api", __name__)
 
-
-api = Blueprint("trip_reports_api", __name__)
 log = logging.getLogger('werkzeug')
 
 

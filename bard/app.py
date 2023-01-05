@@ -5,7 +5,7 @@ from bard import settings
 
 NONE = "'none'"
 log = logging.getLogger(__name__)
-from api.database.mongo.mongodb_conn import MongoDBConn
+from bard.database.mongo.mongodb_conn import MongoDBConn
 
 def create_app(config={}):
 

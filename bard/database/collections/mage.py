@@ -1,4 +1,4 @@
-from api.database.mongo.mongo import Mongo
+from bard.database.mongo.mongo import Mongo
 
 
 class Mage(Mongo):

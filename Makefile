@@ -11,13 +11,18 @@ build:
 	$(COMPOSE) build
 
 shell: services
-	$(APPDOCKER) /bin/bash
+	docker-compose run --rm app /bin/bash
 
 web: services
 	$(COMPOSE) up api
 
 # web: services
 # 	$(COMPOSE) up api ui
+
+
+migrate:
+	$(APPDOCKER) bard db upgrade
+	$(APPDOCKER) bard db  migrate
 
 services:
 	$(COMPOSE) up -d --remove-orphans \

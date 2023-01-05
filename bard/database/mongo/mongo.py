@@ -3,7 +3,7 @@ from bson import ObjectId
 from pymongo.errors import ConnectionFailure
 from time import sleep
 
-from api.database.mongo.mongodb_conn import MongoDBConn
+from bard.database.mongo.mongodb_conn import MongoDBConn
 
 class Mongo:
     def __init__(self):

@@ -1,7 +1,6 @@
 import logging
 from flask import Flask, request
 
-from bard import settings
 
 NONE = "'none'"
 log = logging.getLogger(__name__)
@@ -14,6 +13,11 @@ def create_app(config={}):
     app.config.update(config)
 
     from bard.views import mount_app_blueprints
+
+
+    with app.app_context():
+        MongoDBConn.initialize()
+
 
     mount_app_blueprints(app)
     return app

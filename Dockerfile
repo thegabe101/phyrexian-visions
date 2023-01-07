@@ -6,11 +6,7 @@ ENV DEBIAN_FRONTEND noninteractive
 # build-essential
 RUN apt-get -qq -y update \
     && apt-get -qq -y install  \
-     postgresql-client curl \
     python3-pip python3-icu python3-psycopg2 \
-    python3-lxml \
-    && apt-get -qq -y autoremove \
-    && apt-get clean 
 
 
 # Install Python dependencies

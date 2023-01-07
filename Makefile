@@ -11,8 +11,8 @@ build:
 	$(COMPOSE) build
 
 shell: services
-	docker-compose run --rm app /bin/bash
-
+	#docker-compose run --rm app /bin/bash
+	docker exec -it phyrexian-visions-api-1 bash
 web: services
 	$(COMPOSE) up api
 
@@ -30,3 +30,7 @@ services:
 
 test:
 	$(APPDOCKER) contrib/test.sh
+
+prune:
+	docker system prune -f
+	docker volume prune -f
